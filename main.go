@@ -14,8 +14,14 @@ import (
 // Буфер с task которые надо проверить
 var tasks = make(chan Task, 1000)
 
+var pause = false
+
 func backgroundWorker() {
 	for task := range tasks {
+		for pause {
+			time.Sleep(time.Second)
+			fmt.Println("Ждумс")
+		}
 		updateTask(VerificationTask(task))
 		fmt.Println("Чёто сделал")
 	}

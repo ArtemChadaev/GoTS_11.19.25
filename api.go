@@ -87,5 +87,11 @@ func api() {
 	router.GET("/", getLinks)
 	router.POST("/", postLinks)
 
+	router.POST("/pause", func(context *gin.Context) {
+		pause = true
+	})
+	router.POST("/resume", func(context *gin.Context) {
+		pause = false
+	})
 	_ = router.Run("localhost:3333")
 }
