@@ -36,7 +36,7 @@ func saveData() {
 }
 
 // Добавление task
-func addLink(task Task) {
+func addLink(task Task) Task {
 	mutex.Lock()
 	defer mutex.Unlock()
 
@@ -51,6 +51,8 @@ func addLink(task Task) {
 
 	dataStore = append(dataStore, task)
 	saveData()
+
+	return task
 }
 
 // Изменение task
@@ -70,7 +72,7 @@ func updateTask(task Task) {
 		return
 	}
 
-	dataStore[foundIndex].Links = append(dataStore[foundIndex].Links, task.Links...)
+	dataStore[foundIndex].Links = task.Links
 
 	saveData()
 }

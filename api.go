@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -25,9 +27,10 @@ func postLinks(c *gin.Context) {
 		res = append(res, link)
 	}
 
-	task := Task{ID: 0, Links: res}
-	addLink(task)
+	task := addLink(Task{ID: 0, Links: res})
 	addTask(task)
+
+	c.JSON(http.StatusOK, task.ID)
 }
 
 func getLinks(c *gin.Context) {
@@ -43,18 +46,39 @@ func getLinks(c *gin.Context) {
 	var result []Task
 
 	mutex.RLock()
-	defer mutex.RUnlock()
-
 	for _, id := range list.LinksList {
 		for _, task := range dataStore {
 			if task.ID == id {
-				result = append(result, task)
+				taskCopy := Task{
+					ID:    task.ID,
+					Links: make([]Link, len(task.Links)),
+				}
+
+				copy(taskCopy.Links, task.Links)
+				result = append(result, taskCopy)
 				break
 			}
 		}
 	}
+	mutex.RUnlock()
 
-	c.JSON(http.StatusOK, result)
+	if len(result) == 0 {
+		c.JSON(404, gin.H{})
+		return
+	}
+
+	pdfBytes, err := generatePDF(result)
+	if err != nil {
+		c.JSON(500, gin.H{})
+		return
+	}
+
+	fileName := fmt.Sprintf("report_%d.pdf", time.Now().Unix())
+
+	c.Header("Content-Type", "application/pdf")
+	c.Header("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, fileName))
+	c.Data(http.StatusOK, "application/pdf", pdfBytes)
+
 }
 
 func api() {
