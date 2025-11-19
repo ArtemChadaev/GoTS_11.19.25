@@ -82,7 +82,7 @@ func addTask(task Task) {
 
 func main() {
 	loadData()
-	backgroundWorker()
+	go backgroundWorker()
 	StartBufferTasks()
 	api()
 }
